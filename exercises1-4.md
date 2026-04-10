@@ -99,20 +99,20 @@ The two type parameters are a CPS trick:
 1. **Write `sprintf : type a. (string, a) fmt -> a`.**
    Hint: you’ll need a helper that accumulates a `Buffer.t` or string list.
    The actual signature of the internal function will be:
-   
+
    ```ocaml
    val go : type a b. Buffer.t -> (a, b) fmt -> (unit -> a) -> b
    ```
-   
+
    where the continuation receives the final accumulated string.
    Then `sprintf fmt = go (Buffer.create 16) fmt Fun.id`.
 1. **Define a convenient concatenation operator:**
-   
+
    ```ocaml
    let ( ^^ ) a b = Cat (a, b)
    ```
 1. **Verify these work:**
-   
+
    ```ocaml
    let () =
      assert (sprintf (lit "hello") = "hello");
@@ -156,7 +156,7 @@ type _ handle
 ### Tasks
 
 1. **Define the operations with phase-constrained signatures:**
-   
+
    ```ocaml
    val open_read  : string -> open_r handle
    val open_write : string -> open_w handle
@@ -164,13 +164,13 @@ type _ handle
    val write_line : open_w handle -> string -> open_w handle
    val close      : _ handle -> closed handle
    ```
-   
+
    Note: `close` accepts any open handle but returns a `closed handle`.
    Note: `read_line` and `write_line` return a new handle — this is the
    linear-style trick to prevent using a stale handle after close.
 1. **Implement a mock version** using an internal `string list ref` or similar, where `read_line` pops from the list and `write_line` pushes.
 1. **Write a valid pipeline and verify it compiles:**
-   
+
    ```ocaml
    let () =
      let h = open_read "test.txt" in
@@ -181,14 +181,14 @@ type _ handle
      print_endline line2
    ```
 1. **Verify these are compile errors (comment them out after testing):**
-   
+
    ```ocaml
    (* Should fail: reading from a write handle *)
    let _ = let h = open_write "out.txt" in read_line h
-   
+
    (* Should fail: writing to a read handle *)
    let _ = let h = open_read "in.txt" in write_line h "hello"
-   
+
    (* Should fail: reading after close *)
    let _ =
      let h = open_read "in.txt" in
@@ -196,19 +196,19 @@ type _ handle
      read_line h
    ```
 1. **(Stretch) Add a read-write mode:**
-   
+
    ```ocaml
    type open_rw
    val open_readwrite : string -> open_rw handle
    ```
-   
+
    The challenge: `read_line` should accept both `open_r` and `open_rw`,
    and `write_line` should accept both `open_w` and `open_rw`. You have
    a few options:
 - Use a GADT with capability witnesses
 - Use polymorphic variants as phantom indices
 - Use a “has read capability” / “has write capability” encoding
-   
+
    Try at least two approaches and compare the ergonomics.
 
 ### What you should learn
@@ -242,41 +242,41 @@ type (_, _) vec =
 ### Tasks
 
 1. **Write these basic operations:**
-   
+
    ```ocaml
    val head : ('a, _ succ) vec -> 'a
    val tail : ('a, _ succ) vec -> (* what's the return type? *)
    val length : ('a, 'n) vec -> int
    ```
-   
+
    Note that `head` and `tail` don’t return `option` — the type rules out
    the empty case.
 1. **Write `map`:**
-   
+
    ```ocaml
    val map : ('a -> 'b) -> ('a, 'n) vec -> ('b, 'n) vec
    ```
-   
+
    The length index is preserved.
 1. **Write `zip`:**
-   
+
    ```ocaml
    val zip : ('a, 'n) vec -> ('b, 'n) vec -> ('a * 'b, 'n) vec
    ```
-   
+
    Both inputs must have the same length `'n`. Verify that
    `zip (Cons (1, Nil)) (Cons ("a", Cons ("b", Nil)))` is a type error.
 1. **Write `append`:**
-   
+
    ```ocaml
    (* You'll need type-level addition. *)
    type (_, _, _) add =
      | AddZ : (zero, 'n, 'n) add
      | AddS : ('m, 'n, 'p) add -> ('m succ, 'n, 'p succ) add
-   
+
    val append : ('m, 'n, 'p) add -> ('a, 'm) vec -> ('a, 'n) vec -> ('a, 'p) vec
    ```
-   
+
    The `add` witness is a proof that `m + n = p`. The caller must provide it.
    This is clunky compared to Lean where the kernel would compute the
    addition — that’s the key ergonomic gap.
@@ -284,24 +284,24 @@ type (_, _) vec =
    This is harder than it looks. You need the length to be preserved, but
    the naive accumulator approach changes the type at each step. You’ll
    likely need `append` or a similar trick.
-   
+
    ```ocaml
    val reverse : ('a, 'n) vec -> ('a, 'n) vec
    ```
-   
+
    Hint: one approach is an existential accumulator with an `add` witness
    that you build up as you go. Another is to use `append` with a
    singleton. Neither is pretty — and that’s the point.
 1. **Write `to_list` and `of_list`:**
-   
+
    ```ocaml
    val to_list : ('a, _) vec -> 'a list
-   
+
    (* of_list must hide the length existentially *)
    type 'a some_vec = Vec : ('a, _) vec -> 'a some_vec
    val of_list : 'a list -> 'a some_vec
    ```
-   
+
    Note how `of_list` loses the length information — the length depends on
    the runtime value, so it must be existentially wrapped.
 

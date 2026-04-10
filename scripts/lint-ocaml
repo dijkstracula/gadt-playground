@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Lint/format OCaml files with ocamlformat.
+# Called by pre-commit. Gracefully skips if ocamlformat is not installed.
+
+REQUIRED_VERSION="0.27.0"
+
+if ! command -v ocamlformat > /dev/null 2>&1; then
+  echo "lint-ocaml: ocamlformat not found, skipping"
+  exit 0
+fi
+
+if [ -n "$SKIP_OCAMLFORMAT" ]; then
+  exit 0
+fi
+
+actual_version=$(ocamlformat --version)
+if [ "$actual_version" != "$REQUIRED_VERSION" ]; then
+  echo "lint-ocaml: expected ocamlformat $REQUIRED_VERSION, got $actual_version"
+  exit 1
+fi
+
+ocamlformat --inplace "$@"

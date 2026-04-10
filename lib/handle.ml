@@ -2,7 +2,7 @@
 
 module type H = sig
   (* 1. traditional typestate *)
-  (* 
+  (*
     type closed
     type open_r
     type open_w
@@ -11,10 +11,10 @@ module type H = sig
 
     val open_read : string -> open_r handle
     val open_write : string -> open_w handle
-    val read_line : open_r handle -> string option * open_r handle 
-    val write_line : string -> open_w handle -> open_w handle 
+    val read_line : open_r handle -> string option * open_r handle
+    val write_line : string -> open_w handle -> open_w handle
     (* val read_write : open_r handle -> open_w handle *)
-    val close : _ handle -> closed handle 
+    val close : _ handle -> closed handle
     *)
 
   (* 2. polymorphic variants as phantom indices *)
