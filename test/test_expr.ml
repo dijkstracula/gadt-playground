@@ -8,6 +8,31 @@ let test_add () = Alcotest.(check int) "add" 3 (eval (Add (Int 1, Int 2)))
 let test_if_true () =
   Alcotest.(check int) "if true" 1 (eval (If (Bool true, Int 1, Int 0)))
 
+let test_eq () = 
+  Alcotest.(check bool) "eq 1 1" true (eval (Eq (Int 1, Int 1)));
+  Alcotest.(check bool) "eq 1 0" false (eval (Eq (Int 1, Int 0)))
+
+let test_typecheck () =
+  (* TODO: what's a good proptest here? Feels like the majority of
+   * entirely-random ASTs wouldn't typecheck so I'm not sure what
+   * to do there. *)
+  match typecheck (UInt 42) with
+  | Ok (Any (TInt, Int 42)) -> ()
+  | _ -> Alcotest.fail "uhoh (TODO)" |> ignore;
+
+  match typecheck (UBool true) with
+  | Ok (Any (TBool, Bool true)) -> ()
+  | _ -> Alcotest.fail "uhoh (TODO)" |> ignore;
+
+  match typecheck (UBin ((UInt 1), BAdd, (UInt 1))) with
+  | Ok (Any (TInt, Add ((Int 1), (Int 1)))) -> ()
+  | _ -> Alcotest.fail "uhoh (TODO)" |> ignore;
+
+  match typecheck (UBin ((UInt 1), BEq, (UInt 1))) with
+  | Error (TypeError _) -> ()
+  | _ -> Alcotest.fail "uhoh (TODO)" |> ignore
+
+
 (* -- QCheck generators --------------------------------------------------- *)
 
 let rec gen_int_expr depth : int expr QCheck.Gen.t =
@@ -69,15 +94,15 @@ let add_identity =
 (* -- Test runner --------------------------------------------------------- *)
 
 let () =
-  Alcotest.run "expr"
-    [
-      ( "unit",
-        [
-          Alcotest.test_case "int literal" `Quick test_int;
-          Alcotest.test_case "addition" `Quick test_add;
-          Alcotest.test_case "if true" `Quick test_if_true;
-        ] );
-      ( "properties",
-        List.map QCheck_alcotest.to_alcotest
-          [ eval_total; add_commutative; if_same_branches; add_identity ] );
-    ]
+  Alcotest.run "expr" [
+    "unit", [
+      Alcotest.test_case "int literal" `Quick test_int;
+      Alcotest.test_case "addition"    `Quick test_add;
+      Alcotest.test_case "if true"     `Quick test_if_true;
+      Alcotest.test_case "eq"          `Quick test_eq;
+      Alcotest.test_case "typecheck"   `Quick test_typecheck;
+    ];
+    "properties",
+      List.map QCheck_alcotest.to_alcotest
+        [ eval_total; add_commutative; if_same_branches; add_identity ];
+  ]
