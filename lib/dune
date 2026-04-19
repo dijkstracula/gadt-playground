@@ -1,2 +1,5 @@
 (library
- (name gadt_playground))
+ (name gadt_playground)
+ (public_name gadt_playground)
+ (libraries fmt)
+)

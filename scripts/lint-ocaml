@@ -3,7 +3,7 @@
 # Lint/format OCaml files with ocamlformat.
 # Called by pre-commit. Gracefully skips if ocamlformat is not installed.
 
-REQUIRED_VERSION="0.27.0"
+REQUIRED_VERSION="0.29.0"
 
 if ! command -v ocamlformat > /dev/null 2>&1; then
   echo "lint-ocaml: ocamlformat not found, skipping"
