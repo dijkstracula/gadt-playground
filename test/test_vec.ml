@@ -2,6 +2,8 @@ open Gadt_playground.Vec
 open Gadt_playground.Vec.Operators
 
 type three = Nat.(zero succ succ succ)
+type six = Nat.(three succ succ succ)
+let add_three_three : (three, three, six) Nat.add = Nat.(AddS (AddS (AddS AddZ)))
 
 let int_vec : (int, 'n) vec Alcotest.testable =
   Alcotest.testable pp_int eq
@@ -34,6 +36,15 @@ let test_zip () =
   (* TODO: too lazy to write a testable *)
   Alcotest.(check (pair int string)) "zip head" (1, "a") (head (zip v1 v3))
 
+let test_append () =
+  let v3 = 1 @:: 2 @:: 3 @:: 2 @:: 3 @:: 4 @:: Nil in
+  Alcotest.(check bool) "append v1 v2" true (eq (append add_three_three v1 v2) v3)
+
+let test_reverse () =
+  let v2 : (int, three) vec = 3 @:: 2 @:: 1 @:: Nil in
+  Alcotest.(check bool) "reverse v1" true (eq (reverse v1) v2);
+  Alcotest.(check bool) "reverse (reverse v1)" true (eq (v1 |> reverse |> reverse) v1)
+
 let () =
   Alcotest.run "vec" [
     "unit", [
@@ -43,6 +54,8 @@ let () =
       Alcotest.test_case "eq" `Quick test_eq; 
       Alcotest.test_case "map" `Quick test_map; 
       Alcotest.test_case "zip" `Quick test_zip; 
+      Alcotest.test_case "append" `Quick test_append; 
+      Alcotest.test_case "reverse" `Quick test_reverse; 
     ]
   ]
   
